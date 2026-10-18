@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OASIS VIDA JUEGOS: EL IMPOSTOR</title>
-  <meta name="description" content="Juego grupal interactivo de 'El Impostor' por Oasis Vida Juegos. Ideal para reuniones juveniles y dinámicas en grupo.">
+  <meta name="description" content="Juego grupal interactivo de 'El Impostor' por Oasis Vida Juegos con nombres de jugadores y contador activo en tiempo real.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   
@@ -117,7 +117,36 @@
       font-size: 0.85rem;
       font-weight: 700;
       letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    /* Medalla de Usuarios Activos */
+    .online-counter-badge {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 1.2rem;
+    }
+
+    .online-pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulseGreen 2s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
     }
 
     h1 {
@@ -149,7 +178,7 @@
       margin-bottom: 0.4rem;
     }
 
-    select, input[type="number"] {
+    select, input[type="number"], input[type="text"] {
       width: 100%;
       padding: 0.85rem 1rem;
       border-radius: 12px;
@@ -164,6 +193,29 @@
     select:focus, input:focus {
       border-color: var(--color-gold);
       box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+    }
+
+    /* Lista de Jugadores Dinámica */
+    .players-list-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 0.8rem;
+      max-height: 150px;
+      overflow-y: auto;
+      text-align: left;
+    }
+
+    .player-tag {
+      display: inline-block;
+      background: rgba(107, 33, 168, 0.4);
+      border: 1px solid var(--color-violet);
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin: 0.2rem;
     }
 
     /* Botones */
@@ -206,6 +258,13 @@
     .btn-secondary:hover {
       background: #475569;
       box-shadow: none;
+    }
+
+    .btn-small-add {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      width: auto;
     }
 
     /* Cajas secretas */
@@ -262,7 +321,7 @@
 
   <canvas id="canvas-bg"></canvas>
 
-  <!-- CONTROLES DE MÚSICA DE FONDO SINTETIZADA -->
+  <!-- CONTROLES DE MÚSICA DE FONDO -->
   <div class="audio-controls">
     <button id="audio-toggle-btn" class="btn-audio">🎵 Música: OFF</button>
     <div class="volume-container">
@@ -271,15 +330,34 @@
   </div>
 
   <main class="game-container">
-    <span class="brand-badge">OASIS VIDA JUEGOS</span>
-    <h1>EL IMPOSTOR</h1>
-    <p class="game-subtitle">Descubre quién no conoce la palabra antes de que sea tarde.</p>
+    <div>
+      <span class="brand-badge">OASIS VIDA JUEGOS</span>
+    </div>
+    
+    <!-- Contador de Usuarios Activos -->
+    <div class="online-counter-badge">
+      <span class="online-pulse-dot"></span>
+      <span id="active-users-count">1 Jugador Activo</span>
+    </div>
 
-    <!-- PANTALLA 1: CONFIGURACIÓN -->
+    <h1>EL IMPOSTOR</h1>
+    <p class="game-subtitle">Escribe los nombres de los jugadores y descubre quién es el impostor.</p>
+
+    <!-- PANTALLA 1: INGRESO DE JUGADORES Y CONFIGURACIÓN -->
     <div id="screen-config">
       <div class="form-group">
-        <label for="num-players">Número de Jugadores:</label>
-        <input type="number" id="num-players" min="3" max="15" value="5">
+        <label for="input-player-name">Agregar Nombre de Jugador:</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="input-player-name" placeholder="Ej. Carlos, Sofía..." maxlength="20">
+          <button id="btn-add-player" class="btn btn-small-add" style="margin-top:0;">+ Añadir</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Jugadores Registrados en la Sala:</label>
+        <div id="players-list-display" class="players-list-box">
+          <span style="color: var(--color-subtext); font-size:0.85rem;">Ingresa al menos 3 nombres para empezar...</span>
+        </div>
       </div>
 
       <div class="form-group">
@@ -305,7 +383,7 @@
 
     <!-- PANTALLA 2: PASAR TELÉFONO -->
     <div id="screen-pass" style="display: none;">
-      <h2 id="player-turn-title" style="color: var(--color-gold); margin-bottom: 1rem; font-family: var(--font-serif);">Jugador 1</h2>
+      <h2 id="player-turn-title" style="color: var(--color-gold); margin-bottom: 1rem; font-family: var(--font-serif);">Turno de: ---</h2>
       <p class="instruction-text">Pásale el celular a esta persona. Asegúrate de que nadie más mire la pantalla.</p>
       <button id="btn-reveal" class="btn btn-secret">👁️ Ver mi rol / palabra</button>
     </div>
@@ -316,7 +394,7 @@
         <p style="margin: 0; font-size: 0.9rem; color: var(--color-subtext);">Tu asignación secreta es:</p>
         <div id="role-display"></div>
       </div>
-      <p class="instruction-text">Memoriza tu rol y presiona el botón antes de entregar el teléfono al siguiente jugador.</p>
+      <p class="instruction-text">Memoriza tu rol y presiona el botón antes de entregar el celular al siguiente jugador.</p>
       <button id="btn-next" class="btn">🔒 Ocultar y Entregar Celular</button>
     </div>
 
@@ -325,7 +403,7 @@
       <h2 style="color: var(--color-gold); margin-bottom: 1rem; font-family: var(--font-serif);">🗣️ ¡Hora del Debate!</h2>
       <p class="instruction-text">
         Todos ya conocen su rol.<br><br>
-        En ronda, cada jugador dirá <strong>una sola palabra</strong> relacionada con la clave.<br><br>
+        En ronda, cada participante dirá <strong>una sola palabra</strong> relacionada con la clave.<br><br>
         • <strong>Jugadores:</strong> Descubran al Impostor.<br>
         • <strong>Impostor:</strong> Disimula y finge que sabes la palabra.
       </p>
@@ -351,7 +429,7 @@
   </footer>
 
   <script>
-    // Partículas de fondo
+    // Fondo de Partículas
     const canvas = document.getElementById("canvas-bg");
     const ctx = canvas.getContext("2d");
     let w = canvas.width = window.innerWidth;
@@ -384,7 +462,7 @@
     }
     drawParticles();
 
-    // SINTETIZADOR DE AUDIO AMBIENTAL Y EFECTOS EN TIEMPO REAL (WEB AUDIO API)
+    // Sintetizador de Audio Web
     let audioCtx = null;
     let masterGain = null;
     let isPlaying = false;
@@ -401,10 +479,10 @@
     }
 
     const chords = [
-      [130.81, 155.56, 196.00], // Do menor
-      [103.83, 155.56, 207.65], // La bemol
-      [155.56, 196.00, 233.08], // Mi bemol
-      [116.54, 146.83, 174.61]  # Si bemol
+      [130.81, 155.56, 196.00],
+      [103.83, 155.56, 207.65],
+      [155.56, 196.00, 233.08],
+      [116.54, 146.83, 174.61]
     ];
 
     let chordStep = 0;
@@ -425,7 +503,6 @@
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-        // Transición suave de entrada y salida
         gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 1.5);
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 3.8);
@@ -487,7 +564,7 @@
       }
     });
 
-    // Banco de Palabras del Juego
+    // SISTEMA DE NOMBRES DE JUGADORES Y MODO DE JUEGO
     const palabras = {
       personajes: ["Moisés", "David", "Goliat", "Pedro", "Pablo", "Noé", "Abraham", "Daniel", "Sansón", "José", "Esther", "Jonás", "Salomón", "María", "Elías"],
       lugares: ["Jerusalén", "El Arca de Noé", "El Pozo de Jacob", "El Jardín del Edén", "El Mar Rojo", "El Monte Sinaí", "Belén", "Jericó", "Egipto", "Nínive", "Nazaret"],
@@ -495,35 +572,83 @@
       jovenes: ["Café Gratis en el Parque", "Oasis Joven", "Huancayo", "Tiempo de Alabanza", "Oración en Grupo", "Reunión del Sábado", "Dinámica de Integración", "Música Instrumental"]
     };
 
-    let totalJugadores = 5;
+    let listaJugadores = [];
     let totalImpostores = 1;
-    let jugadorActual = 0;
+    let jugadorActualIdx = 0;
     let palabraElegida = "";
     let indicesImpostores = [];
 
+    const inputName = document.getElementById("input-player-name");
+    const btnAddPlayer = document.getElementById("btn-add-player");
+    const playersDisplay = document.getElementById("players-list-display");
+    const activeCountText = document.getElementById("active-users-count");
+
+    function renderPlayers() {
+      if (listaJugadores.length === 0) {
+        playersDisplay.innerHTML = `<span style="color: var(--color-subtext); font-size:0.85rem;">Ingresa al menos 3 nombres para empezar...</span>`;
+      } else {
+        playersDisplay.innerHTML = "";
+        listaJugadores.forEach((nombre, idx) => {
+          const tag = document.createElement("span");
+          tag.className = "player-tag";
+          tag.innerHTML = `${nombre} <strong style="cursor:pointer; margin-left:5px; color:#f87171;" onclick="removePlayer(${idx})">&times;</strong>`;
+          playersDisplay.appendChild(tag);
+        });
+      }
+      activeCountText.innerText = `${Math.max(1, listaJugadores.length)} Jugador${listaJugadores.length !== 1 ? 'es' : ''} en la Sala`;
+    }
+
+    function addPlayer() {
+      const val = inputName.value.trim();
+      if (val.length > 0 && !listaJugadores.includes(val)) {
+        listaJugadores.push(val);
+        inputName.value = "";
+        renderPlayers();
+        playSfx(587.33, 'sine', 0.1);
+      }
+    }
+
+    window.removePlayer = function(idx) {
+      listaJugadores.splice(idx, 1);
+      renderPlayers();
+      playSfx(300, 'sine', 0.1);
+    };
+
+    btnAddPlayer.addEventListener("click", addPlayer);
+    inputName.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") addPlayer();
+    });
+
     document.getElementById("btn-start").addEventListener("click", () => {
-      playSfx(440, 'triangle', 0.15);
-      totalJugadores = parseInt(document.getElementById("num-players").value);
+      initAudioContext();
+      
+      if (listaJugadores.length < 3) {
+        alert("Por favor ingresa al menos 3 jugadores para comenzar el juego.");
+        return;
+      }
+
       totalImpostores = parseInt(document.getElementById("num-impostors").value);
       const cat = document.getElementById("category").value;
 
-      if (totalImpostores >= totalJugadores) {
-        alert("El número de impostores debe ser menor que el total de jugadores.");
+      if (totalImpostores >= listaJugadores.length) {
+        alert("La cantidad de impostores debe ser menor que el total de jugadores.");
         return;
       }
+
+      playSfx(440, 'triangle', 0.15);
 
       const lista = palabras[cat];
       palabraElegida = lista[Math.floor(Math.random() * lista.length)];
 
       indicesImpostores = [];
       while (indicesImpostores.length < totalImpostores) {
-        const rand = Math.floor(Math.random() * totalJugadores);
+        const rand = Math.floor(Math.random() * listaJugadores.length);
         if (!indicesImpostores.includes(rand)) {
           indicesImpostores.push(rand);
         }
       }
 
-      jugadorActual = 0;
+      jugadorActualIdx = 0;
       mostrarTurno();
     });
 
@@ -534,7 +659,7 @@
       document.getElementById("screen-result").style.display = "none";
       
       document.getElementById("screen-pass").style.display = "block";
-      document.getElementById("player-turn-title").innerText = `Jugador ${jugadorActual + 1}`;
+      document.getElementById("player-turn-title").innerText = `Turno de: ${listaJugadores[jugadorActualIdx]}`;
     }
 
     document.getElementById("btn-reveal").addEventListener("click", () => {
@@ -543,8 +668,8 @@
       document.getElementById("screen-reveal").style.display = "block";
 
       const display = document.getElementById("role-display");
-      if (indicesImpostores.includes(jugadorActual)) {
-        display.innerHTML = `<div class="impostor-word">🕵️ ¡ERES EL IMPOSTOR!</div><p style="margin-top:0.6rem; font-size:0.9rem; color:var(--color-subtext);">No conoces la palabra. Escucha con atención y disimula.</p>`;
+      if (indicesImpostores.includes(jugadorActualIdx)) {
+        display.innerHTML = `<div class="impostor-word">🕵️ ¡ERES EL IMPOSTOR!</div><p style="margin-top:0.6rem; font-size:0.9rem; color:var(--color-subtext);">${listaJugadores[jugadorActualIdx]}, no conoces la palabra. Escucha con atención y disimula.</p>`;
       } else {
         display.innerHTML = `<div class="secret-word">${palabraElegida}</div>`;
       }
@@ -552,8 +677,8 @@
 
     document.getElementById("btn-next").addEventListener("click", () => {
       playSfx(330, 'sine', 0.1);
-      jugadorActual++;
-      if (jugadorActual < totalJugadores) {
+      jugadorActualIdx++;
+      if (jugadorActualIdx < listaJugadores.length) {
         mostrarTurno();
       } else {
         document.getElementById("screen-reveal").style.display = "none";
@@ -568,7 +693,7 @@
 
       document.getElementById("final-word").innerText = palabraElegida;
       
-      const impostoresNombres = indicesImpostores.map(i => `Jugador ${i + 1}`).join(", ");
+      const impostoresNombres = indicesImpostores.map(i => listaJugadores[i]).join(", ");
       document.getElementById("final-impostor").innerText = impostoresNombres;
     });
 
